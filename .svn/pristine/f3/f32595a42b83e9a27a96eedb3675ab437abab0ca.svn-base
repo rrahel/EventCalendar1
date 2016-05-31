@@ -1,0 +1,350 @@
+package at.fh.swenga.jpa.model;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.PreRemove;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Version;
+
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+@Entity
+@Table(name= "User")
+public class User implements Serializable {
+
+	private static final long serialVersionUID = 4844183023167728986L;
+
+	@Id
+	@Column(unique=true, nullable=false, length=255)
+	private String username; // in our case the email address, JPA explicit wants a field username
+	
+	@Column(nullable=false, length=50)
+	private String surname;
+	
+	@Column(nullable=false, length=50)
+	private String firstname;
+	
+	@Temporal(TemporalType.DATE) // only saves the date
+	private Date dayOfBirth;
+	
+	@Column(nullable=false)
+	private Boolean status;
+	
+	@Lob
+	@Column(nullable=true)
+	private byte[] picture;
+	
+	@Column(name="password", nullable=false, length=60)
+	private String bCryptPassword;
+	
+	@Column(nullable = false)
+	private Boolean enabled;
+		
+	@ManyToMany(cascade=CascadeType.PERSIST, fetch=FetchType.EAGER)
+	private Set<UserGroup> userGroups;
+	
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "user")
+	private Set<UserRole> userRoles = new HashSet<UserRole>(); 
+	
+	@ManyToMany(cascade=CascadeType.PERSIST, fetch=FetchType.EAGER)
+	private Set<Event> events;
+	
+//	@ManyToMany(cascade=CascadeType.PERSIST)
+//	private List<Notification> notifications;
+	
+	// customize my calendar
+	@Column(nullable = false)
+	private String background;
+	
+	@Column(nullable = true)
+	private int firstDay;
+	
+	@Column(nullable = true)
+	private Boolean weekNumbers;
+	
+	@Column(nullable = true)
+	private Boolean weekends;
+	
+	@Column(nullable = true)
+	private String defaultView;
+
+	@Version
+	long version;
+		
+	public User(String username, String surname, String firstname,
+			Date dayOfBirth, Boolean status, String password,
+			Boolean enabled, String background) {
+		super();
+		this.username = username;
+		this.surname = surname;
+		this.firstname = firstname;
+		this.dayOfBirth = dayOfBirth;
+		this.status = status;
+		setBCryptPassword(password);
+		this.enabled = enabled;
+		this.background = background;
+	}
+
+
+	public User() {
+		super();
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+
+	public String getSurname() {
+		return surname;
+	}
+	
+	public void setSurname(String surname) {
+		this.surname = surname;
+	}
+	
+	public String getFirstname() {
+		return firstname;
+	}
+	
+	public void setFirstname(String firstname) {
+		this.firstname = firstname;
+	}
+	
+	public Date getDayOfBirth() {
+		return dayOfBirth;
+	}
+	
+	public void setDayOfBirth(Date dayOfBirth) {
+		this.dayOfBirth = dayOfBirth;
+	}
+	
+	public Boolean getStatus() {
+		return status;
+	}
+	
+	public void setStatus(Boolean status) {
+		this.status = status;
+	}
+	
+	public byte[] getPicture() {
+		return picture;
+	}
+	
+	public void setPicture(byte[] picture) {
+		this.picture = picture;
+	}
+
+	public Set<UserGroup> getUserGroups() {
+		return userGroups;
+	}
+
+	public void setUserGroups(Set<UserGroup> userGroups) {
+		this.userGroups = userGroups;
+	}
+
+	public void setBCryptPassword(String hashedPassword) {
+		this.bCryptPassword = hashedPassword;
+	}
+	
+	public String getBCryptPassword() {
+		return bCryptPassword;
+	}
+	
+	public void setPassword(String password) {
+		setBCryptPassword(new BCryptPasswordEncoder().encode(password));
+	}
+
+	public Boolean getEnabled() {
+		return enabled;
+	}
+
+
+	public void setEnabled(Boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	public Set<UserRole> getUserRoles() {
+		return userRoles;
+	}
+
+
+	public void setUserRoles(Set<UserRole> userRoles) {
+		this.userRoles = userRoles;
+	}
+
+
+	public String getBackground() {
+		return background;
+	}
+
+
+	public void setBackground(String background) {
+		this.background = background;
+	}
+
+
+	public int getFirstDay() {
+		return firstDay;
+	}
+
+
+	public void setFirstDay(int firstDay) {
+		this.firstDay = firstDay;
+	}
+
+
+	public Boolean getWeekNumbers() {
+		return weekNumbers;
+	}
+
+
+	public void setWeekNumbers(Boolean weekNumbers) {
+		this.weekNumbers = weekNumbers;
+	}
+
+
+	public Boolean getWeekends() {
+		return weekends;
+	}
+
+
+	public void setWeekends(Boolean weekends) {
+		this.weekends = weekends;
+	}
+
+
+	public String getDefaultView() {
+		return defaultView;
+	}
+
+
+	public void setDefaultView(String defaultView) {
+		this.defaultView = defaultView;
+	}
+	
+	public Set<Event> getEvents() {
+		return events;
+	}
+	
+	public Event getEvent(Event event){
+		Event foundEvent = new Event();
+		for(Event e : events){
+			if(e.getId() == event.getId()){
+				foundEvent = e;
+			} else {
+				foundEvent = null;
+			}
+		}
+		return foundEvent;
+		
+	}
+	
+	public UserGroup getUserGroup(UserGroup ugroup) {
+		UserGroup foundUserGroup = new UserGroup();
+		for(UserGroup u : userGroups){
+			if(u.getGroupID() == ugroup.getGroupID()){
+				foundUserGroup = u;
+			} else {
+				foundUserGroup = null;
+			}
+		}
+		return foundUserGroup;
+	}
+
+
+
+	public void setEvents(Set<Event> events) {
+		this.events = events;
+	}
+
+
+	public void addGroup(UserGroup newGroup) {
+		if(userGroups == null){
+			userGroups = new HashSet<UserGroup>();
+		}
+		userGroups.add(newGroup);
+		
+	}
+	
+	public void addEvent(Event event) {
+		if(events == null){
+			events = new HashSet<Event>();
+		}
+		events.add(event);
+		
+	}
+	
+	public void removeEvent(Event event) {
+		events.remove(event);
+		
+	}
+	
+	public void removeGroup(UserGroup delGroup) {
+		userGroups.remove(delGroup);
+		
+	}
+
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((username == null) ? 0 : username.hashCode());
+		return result;
+	}
+
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		User other = (User) obj;
+		if (username == null) {
+			if (other.username != null)
+				return false;
+		} else if (!username.equals(other.username))
+			return false;
+		return true;
+	}
+
+
+	
+
+
+	
+
+	
+	
+	
+	
+		
+}
